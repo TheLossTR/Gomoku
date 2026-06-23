@@ -8,7 +8,7 @@ EMPTY = 0
 PLAYER_1 = 1       # Чёрные
 PLAYER_2 = 2       # Белые
 BOT_PLAYER = PLAYER_2
-
+DEFENCE_COEFF = 0.9
 
 def check_winner(board, row, col, player):
     directions = [(1, 0), (0, 1), (1, 1), (1, -1)]
@@ -49,27 +49,27 @@ def evaluate_window(window, player):  # Оценка одного окна из 
 
     # Победа или поражение
     if player_count == 5:
-        return 1_000_000
+        return 10000
     if opponent_count == 5:
-        return -1_000_000
+        return -10000
 
     # Потенциальные линии
     if player_count == 4 and empty_count == 1:
-        return 100_000   # почти победа
+        return 1000   # почти победа
     if player_count == 3 and empty_count == 2:
-        return 1000
-    if player_count == 2 and empty_count == 3:
         return 100
-    if player_count == 1 and empty_count == 4:
+    if player_count == 2 and empty_count == 3:
         return 10
+    if player_count == 1 and empty_count == 4:
+        return 1
 
     # Блокировка сильных линий противника
     if opponent_count == 4 and empty_count == 1:
-        return -90_000   # нужно срочно блокировать
+        return -1000 * DEFENCE_COEFF  # нужно срочно блокировать
     if opponent_count == 3 and empty_count == 2:
-        return -800
+        return -100 * DEFENCE_COEFF
     if opponent_count == 2 and empty_count == 3:
-        return -50
+        return -10 * DEFENCE_COEFF
 
     return 0
 
@@ -131,10 +131,8 @@ def get_bot_move(board):
             if board[r][c] == EMPTY:
                 board[r][c] = BOT_PLAYER
                 score = evaluate_board(board, BOT_PLAYER)
-                # Небольшой бонус за центр (по желанию)
-                center = BOARD_SIZE // 2
-                dist = abs(r - center) + abs(c - center)
-                score -= dist * 0.2
+                if score < 1000:
+                    score *= random.randint(9, 11)/10
                 board[r][c] = EMPTY
                 if score > best_score:
                     best_score = score
